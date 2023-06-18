@@ -73,7 +73,7 @@ pub fn extract_AiTL_file(input_path: &str, output_path: &str) -> Result<()> {
     let label_filename = format!("{output_path}/{}", data.header.label_filename);
     
     let label = data.header.label;
-    let demo_filename = label.clone().demo_file;
+    let demo_filename = format!("{output_path}/{}", label.clone().demo_file);    
 
     let label = toml::to_string_pretty(&label)?;
 

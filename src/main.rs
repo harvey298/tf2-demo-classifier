@@ -4,7 +4,7 @@ use std::{fs, io, path::Path};
 use tf_demo_parser::{Demo, DemoParser, demo::parser::gamestateanalyser::GameStateAnalyser};
 use anyhow::Result;
 
-use crate::aitl::{Label, save_AiTL_file, AiTLFileHeader};
+use crate::aitl::{Label, save_AiTL_file, AiTLFileHeader, extract_AiTL_file};
 mod aitl;
 
 fn main() {
@@ -15,10 +15,15 @@ fn main() {
     output = output.replace("\n", "").replace("\r", "").replace("\\", "/");
     
     loop {
-        println!("Path to Demo: ");
+        println!("Path to Demo or AiTL file: ");
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         input = input.replace("\n", "").replace("\r", "").replace("\\", "/");
+
+        if input.to_lowercase().contains(".aitl") {
+            extract_AiTL_file(&input, &output).unwrap();
+            continue;            
+        }
         
         if Path::new(&input).exists() {
             let filename = input.split("/").last().unwrap().replace(".dem", ".aitl");
