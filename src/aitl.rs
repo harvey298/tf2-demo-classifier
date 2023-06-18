@@ -3,7 +3,7 @@ use std::fs;
 use anyhow::{Result, bail};
 use serde::{Serialize, Deserialize};
 
-pub fn open_AITL_file(path: &str) -> Result<AITLFile> {
+pub fn open_AiTL_file(path: &str) -> Result<AiTLFile> {
 
     let data = fs::read(path).unwrap();
     
@@ -32,7 +32,7 @@ pub fn open_AITL_file(path: &str) -> Result<AITLFile> {
         }
     }
 
-    let header: AITLFileHeader = serde_json::from_str(&String::from_utf8(header).unwrap()).unwrap();
+    let header: AiTLFileHeader = serde_json::from_str(&String::from_utf8(header).unwrap()).unwrap();
 
     let mut demo = Vec::new();
     for _ in 0..header_size {
@@ -44,12 +44,12 @@ pub fn open_AITL_file(path: &str) -> Result<AITLFile> {
         }
     }
 
-    let data = AITLFile{ header: header, demo};
+    let data = AiTLFile{ header: header, demo};
 
     Ok(data)
 }
 
-pub fn save_AITL_file(path: &str, demo: &[u8], header: AITLFileHeader) -> Result<()> {
+pub fn save_AiTL_file(path: &str, demo: &[u8], header: AiTLFileHeader) -> Result<()> {
 
     let data = serde_json::to_string(&header).unwrap();
     let mut header = data.as_bytes().to_vec();
@@ -66,9 +66,9 @@ pub fn save_AITL_file(path: &str, demo: &[u8], header: AITLFileHeader) -> Result
     Ok(())
 }
 
-pub fn extract_AITL_file(input_path: &str, output_path: &str) -> Result<()> {
+pub fn extract_AiTL_file(input_path: &str, output_path: &str) -> Result<()> {
 
-    let data = open_AITL_file(input_path).unwrap();
+    let data = open_AiTL_file(input_path).unwrap();
 
     let label_filename = format!("{output_path}/{}", data.header.label_filename);
     
@@ -85,14 +85,14 @@ pub fn extract_AITL_file(input_path: &str, output_path: &str) -> Result<()> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AITLFileHeader {
+pub struct AiTLFileHeader {
     pub label: Label,
     pub label_filename: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct AITLFile {
-    pub header: AITLFileHeader,
+pub struct AiTLFile {
+    pub header: AiTLFileHeader,
     pub demo: Vec<u8>,
 }
 

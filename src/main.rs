@@ -1,20 +1,30 @@
+#![allow(non_snake_case)]
 use std::{fs, io, path::Path};
 
-use serde::{Serialize, Deserialize};
 use tf_demo_parser::{Demo, DemoParser, demo::parser::gamestateanalyser::GameStateAnalyser};
 use anyhow::Result;
 
+use crate::aitl::{Label, save_AiTL_file, AiTLFileHeader};
+mod aitl;
+
 fn main() {
+
+    println!("Output Folder: ");
+    let mut output = String::new();
+    io::stdin().read_line(&mut output).unwrap();
+    output = output.replace("\n", "").replace("\r", "").replace("\\", "/");
     
     loop {
         println!("Path to Demo: ");
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
-        input = input.replace("\n", "").replace("\r", "");
+        input = input.replace("\n", "").replace("\r", "").replace("\\", "/");
         
         if Path::new(&input).exists() {
-            open_demo(&input).unwrap();
+            let filename = input.split("/").last().unwrap().replace(".dem", ".aitl");
+            let output_file = format!("{output}./{filename}");
 
+            open_demo(&input, &output_file).unwrap();
 
         } else { println!("Invalid Path"); }
 
@@ -23,9 +33,11 @@ fn main() {
 }
 
 
-fn open_demo(path: &str) -> Result<()> {
+fn open_demo(path: &str, output: &str) -> Result<()> {
 
     let file = fs::read(path).unwrap();
+
+    let filename = path.split("/").last().unwrap();
 
     let demo = Demo::new(&file);
     let parser  = DemoParser::new_all_with_analyser(demo.get_stream(), GameStateAnalyser::default());
@@ -75,17 +87,30 @@ fn open_demo(path: &str) -> Result<()> {
         }
     }
 
-    let data = Label{ demo_file: path.to_owned(), cheater: !cheaters.is_empty(), cheater_steam_id: cheaters };
+    let data = Label{ demo_file: filename.to_owned(), cheater: !cheaters.is_empty(), cheater_steam_id: cheaters.to_vec() };
 
-    let path = format!("{}_label.toml", path);
-    let data = toml::to_string_pretty(&data).unwrap();
-    fs::write(path, data).unwrap();    
+    let filename = filename.replace(".dem", ".toml");
+
+    let header = AiTLFileHeader {
+        label: data,
+        label_filename: filename.to_owned(),
+    };
+
+    save_AiTL_file(output, &file, header).unwrap();
 
     Ok(())
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Label {
-    pub demo_file: String,
-    pub cheater: bool,
-    pub cheater_steam_id: Vec<String>,
+
+#[cfg(test)]
+mod test {
+    
+    use crate::aitl::{ extract_AiTL_file};
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn AiTL_load() {
+
+        extract_AiTL_file("data.AITL", "./").unwrap();
+    }
+
 }
